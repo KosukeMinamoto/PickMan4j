@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.minamo</groupId>
+  <artifactId>pickman</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>pickman</name>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/edu.sc.seis/seisFile -->
+    <dependency>
+        <groupId>edu.sc.seis</groupId>
+        <artifactId>seisFile</artifactId>
+        <version>2.0.6</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jfree</groupId>
+        <artifactId>jfreechart</artifactId>
+        <version>1.5.3</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/edu.mines.jtk/edu-mines-jtk -->
+    <dependency>
+      <groupId>edu.mines.jtk</groupId>
+      <artifactId>edu-mines-jtk</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/jfree/jcommon -->
+    <dependency>
+      <groupId>jfree</groupId>
+      <artifactId>jcommon</artifactId>
+      <version>1.0.16</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.6.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- http://maven.apache.org/plugins/maven-assembly-plugin/ -->
+      <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <version>3.1.1</version>
+      <executions>
+        <execution>
+        <phase>package</phase>
+        <goals>
+          <goal>single</goal>
+        </goals>
+        </execution>
+      </executions>
+      <configuration>
+        <descriptorRefs>
+        <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>
+        <archive>
+        <manifest>
+          <mainClass>com.minamo.App</mainClass>
+        </manifest>
+        </archive>
+      </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
