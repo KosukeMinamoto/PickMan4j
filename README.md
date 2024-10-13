@@ -35,8 +35,8 @@ java -jar target/pickman-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 Click on the chart to select the arrival time.
 
-- Left or Middle click: select the P-wave arrival time.
-- Right click: select the S-wave arrival time.
+- Left click: select the P-wave arrival time.
+- Middle click: select the S-wave arrival time.
 - Save button: save the selected arrival times to a NonLinLoc OBS file. See details [here](http://alomax.free.fr/nlloc/).
 
 ![GUI example](example.png)
