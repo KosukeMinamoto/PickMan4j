@@ -10,7 +10,7 @@ If you have gradle installed, you can compile the project with:
 
 ```bash
 gradle clean build
-gradle fastJar
+gradle fatJar
 ```
 
 and run with:
@@ -39,7 +39,9 @@ Click on the chart to select the arrival time.
 - Right click: select the S-wave arrival time.
 - Save button: save the selected arrival times to a NonLinLoc OBS file. See details [here](http://alomax.free.fr/nlloc/).
 
-Example waveforms are in `sac` directory.
+![GUI example](example.png)
+
+Example waveforms are in `210622.143000` directory.
 
 ## To be implemented
 
