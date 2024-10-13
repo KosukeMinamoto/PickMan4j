@@ -19,7 +19,7 @@ and run with:
 java -jar build/libs/pickman-1.0-SNAPSHOT-all.jar
 ```
 
-Also you can compile and run with maven:
+Also you can compile with maven:
 
 ```bash
 mvn clean package
