@@ -22,13 +22,23 @@ public class ArrivalTimeManager {
 	}
 
 	public void updateArrivalTime(String stationName, String component, String phase, Date arrivalTime) {
+		stationName = stationName.replace(" ", "");
 		String key = createKey(stationName, phase);
 		if (arrivalTimeMap.containsKey(key)) {
-			System.out.println("Updating arrival time for " + stationName + " (" + phase + ")");
+			System.out.println("Updated: " + stationName + " (" + phase + ") " + arrivalTime);
 			arrivalTimeMap.get(key).setArrivalTime(arrivalTime);
 		} else {
-			System.out.println("Adding new arrival time for " + stationName + " (" + phase + ")");
+			System.out.println("Added:   " + stationName + " (" + phase + ") " + arrivalTime);
 			arrivalTimeMap.put(key, new ArrivalTime(stationName, component, phase, arrivalTime));
+		}
+	}
+
+	public void removeArrivalTime(String stationName, String component, String phase) {
+		stationName = stationName.replace(" ", "");
+		String key = createKey(stationName, phase);
+		if (arrivalTimeMap.containsKey(key)) {
+			System.out.println("Removed: " + stationName + " (" + phase + ") " + arrivalTimeMap.get(key).getArrivalTime());
+			arrivalTimeMap.remove(key);
 		}
 	}
 
@@ -82,6 +92,10 @@ public class ArrivalTimeManager {
 
 	public void clearArrivalTimes() {
 		arrivalTimeMap.clear();
+	}
+
+	public boolean containsArrivalTime(String key) {
+		return arrivalTimeMap.containsKey(key);
 	}
 }
 

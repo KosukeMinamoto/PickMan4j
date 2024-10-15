@@ -56,6 +56,8 @@ public class MainFrame {
 		chartPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		frame.add(filePanel, BorderLayout.EAST);
+		SacTimeSeries[] dummyWaveforms = new SacTimeSeries[0];
+		updateCharts(chartPanel, dummyWaveforms, frame);
 
 		JPanel inputPanel = new JPanel();
 		lowFreqField = new JTextField("1", 5);
@@ -70,7 +72,7 @@ public class MainFrame {
 			try {
 				lowFreq = Float.parseFloat(lowFreqField.getText());
 				highFreq = Float.parseFloat(highFreqField.getText());
-				System.out.println("Updated frequencies: Low = " + lowFreq + ", High = " + highFreq);
+				System.out.println("BP freq: " + lowFreq + " - " + highFreq + " Hz");
 
 				if (selectedDir != null) {
 					Component viewComponent = ((JScrollPane) filePanel.getComponent(1)).getViewport().getView();
@@ -224,14 +226,10 @@ public class MainFrame {
 						return;
 					}
 					SacTimeSeries[] waveforms = new SacTimeSeries[selectedIndices.length];
-					double lowFreq = Double.parseDouble(lowFreqField.getText());
-					double highFreq = Double.parseDouble(highFreqField.getText());
 					for (int i = 0; i < selectedIndices.length; i++) {
-						// System.out.println(filesInDir[selectedIndices[i]].getName());
 						waveforms[i] = WaveProcessor.read(filesInDir[selectedIndices[i]].getAbsolutePath());
-						waveforms[i] = WaveProcessor.bandPassFilter(waveforms[i], (float) lowFreq, (float) highFreq);
+						waveforms[i] = WaveProcessor.bandPassFilter(waveforms[i], lowFreq, highFreq);
 					}
-
 					updateCharts(chartPanel, waveforms, frame);
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -287,11 +285,10 @@ public class MainFrame {
 		XYPlot plot = (XYPlot) chart.getPlot();
 		plot.setDomainPannable(true);
 		plot.setRangePannable(true);
-		// plot.setDomainGridlinesVisible(false);
-		// plot.setRangeGridlinesVisible(false);
-		// plot.setOutlineVisible(false);
+		plot.clearAnnotations();
 		for (int i = 0; i < waveforms.length; i++) {
 			plot.getRenderer().setSeriesPaint(i, seriesColor[i]);
+			updateAnnotations(plot, waveforms[i].getHeader().getKstnm(), i);
 		}
 
 		org.jfree.chart.axis.SymbolAxis yAxis = new org.jfree.chart.axis.SymbolAxis(null, fileNames);
@@ -316,7 +313,6 @@ public class MainFrame {
 					int itemIndex = itemEntity.getItem();
 					TimeSeries series = dataset.getSeries(seriesIndex);
 					RegularTimePeriod xTime = series.getTimePeriod(itemIndex);
-					Number yValue = series.getValue(itemIndex);
 
 					String stationName = fileNames[seriesIndex].split("__")[0];
 					String component = fileNames[seriesIndex].split("__")[1];
@@ -324,24 +320,16 @@ public class MainFrame {
 
 					java.util.Date xDate = new java.util.Date(xTime.getFirstMillisecond());
 
-					int roundedAmp = (int) Math.round(yValue.doubleValue());
-					double yMin = roundedAmp - 0.5;
-					double yMax = roundedAmp + 0.5;
-					plot.clearAnnotations();
-
-					double xValue = xTime.getFirstMillisecond();
-					java.awt.Color annotationColor = phase.equals("P") ? java.awt.Color.RED
-							: (phase.equals("S") ? java.awt.Color.BLUE : java.awt.Color.BLACK);
-
-					plot.addAnnotation(new XYLineAnnotation(
-							xValue,
-							yMin,
-							xValue,
-							yMax,
-							new BasicStroke(2.0f),
-							annotationColor),
-							true);
-					arrivalTimeManager.updateArrivalTime(stationName, component, phase, xDate);
+					if ((event.getTrigger().getModifiersEx() & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0) {
+						arrivalTimeManager.removeArrivalTime(stationName, component, phase);
+					} else {
+						arrivalTimeManager.updateArrivalTime(stationName, component, phase, xDate);
+					}
+				}
+				plot.clearAnnotations();
+				for (int i = 0; i < waveforms.length; i++) {
+					String stationName = fileNames[i].split("__")[0];
+					updateAnnotations(plot, stationName, i);
 				}
 			}
 
@@ -355,6 +343,39 @@ public class MainFrame {
 		});
 		frame.revalidate();
 		frame.repaint();
+	}
+
+	private static void updateAnnotations(XYPlot plot, String station, int index) {
+		double yMin = index - 0.5;
+		double yMax = index + 0.5;
+		station = station.replace(" ", "");
+		if (arrivalTimeManager.containsArrivalTime(station + "_P")) {
+			ArrivalTime arrivalTime = arrivalTimeManager.getArrivalTimeMap().get(station + "_P");
+			double xValue = arrivalTime.getArrivalTime().getTime();
+			java.awt.Color annotationColor = java.awt.Color.MAGENTA;
+			plot.addAnnotation(new XYLineAnnotation(
+					xValue,
+					yMin,
+					xValue,
+					yMax,
+					new BasicStroke(2.0f),
+					annotationColor),
+					true);
+		}
+		if (arrivalTimeManager.containsArrivalTime(station + "_S")) {
+			ArrivalTime arrivalTime = arrivalTimeManager.getArrivalTimeMap().get(station + "_S");
+			double xValue = arrivalTime.getArrivalTime().getTime();
+			java.awt.Color annotationColor = java.awt.Color.CYAN;
+
+			plot.addAnnotation(new XYLineAnnotation(
+					xValue,
+					yMin,
+					xValue,
+					yMax,
+					new BasicStroke(2.0f),
+					annotationColor),
+					true);
+		}
 	}
 
 	private static void updateZoomChart(ChartMouseEvent event, TimeSeriesCollection dataset) {
@@ -419,7 +440,7 @@ public class MainFrame {
 
 		String fileName = selectedDir.getName() + ".obs";
 		arrivalTimeManager.outputToObs(fileName);
-		arrivalTimeManager.printAllArrivalTimes();
+		// arrivalTimeManager.printAllArrivalTimes();
 	}
 
 	private static TimeSeries normalizeTimeSeries(TimeSeries series) {
