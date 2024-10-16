@@ -1,8 +1,7 @@
-# Pickman for Java environment
+# Pickman for Java ***Under development***
 
 Pickman is a simple GUI tool for picking seismic arrival times manually.
 
-***Warning: This tool is under development.***
 
 ## Compile and run
 
