@@ -44,6 +44,7 @@ public class MainFrame {
 	private static float lowFreq = 1.0f;
 	private static float highFreq = 16.0f;
 
+	private static String outputDir = ".";
 	private static JFrame zoomFrame;
 	private static JFreeChart zoomChart;
 	private static ChartPanel zoomChartPanel;
@@ -60,8 +61,8 @@ public class MainFrame {
 		updateCharts(chartPanel, dummyWaveforms, frame);
 
 		JPanel inputPanel = new JPanel();
-		lowFreqField = new JTextField("1", 5);
-		highFreqField = new JTextField("45", 5);
+		lowFreqField = new JTextField("1", 3);
+		highFreqField = new JTextField("45", 3);
 		inputPanel.add(new JLabel("Freq Min:"));
 		inputPanel.add(lowFreqField);
 		inputPanel.add(new JLabel("Freq Max:"));
@@ -107,13 +108,32 @@ public class MainFrame {
 		});
 		inputPanel.add(updateButton);
 
+		JPanel savePanel = new JPanel();
+		JButton selectOutputDirButton = new JButton("Select Output Directory");
+		selectOutputDirButton.addActionListener(e -> {
+			JFileChooser dirChooser = new JFileChooser();
+			dirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnValue = dirChooser.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				outputDir = dirChooser.getSelectedFile().getAbsolutePath();
+				System.out.println("Output directory selected: " + outputDir);
+			}
+		});
+		savePanel.add(selectOutputDirButton);
+
 		JButton saveButton = new JButton("SAVE");
-		saveButton.addActionListener(e -> writeSeismicDataToFile());
+		saveButton.addActionListener(e -> {
+			if (outputDir == null || outputDir.isEmpty()) {
+				System.err.println("No output directory selected.");
+				return;
+			}
+			writeSeismicDataToFile();
+		});
+		savePanel.add(saveButton);
 
 		JPanel southPanel = new JPanel(new BorderLayout());
 		southPanel.add(inputPanel, BorderLayout.CENTER);
-		southPanel.add(saveButton, BorderLayout.SOUTH);
-
+		southPanel.add(savePanel, BorderLayout.SOUTH);
 		filePanel.add(southPanel, BorderLayout.SOUTH);
 
 		mousePositionLabel = new JLabel("Mouse Position: (0, 0)");
@@ -151,7 +171,7 @@ public class MainFrame {
 
 	private static void createZoomWindow() {
 		zoomFrame = new JFrame("Zoom");
-		zoomFrame.setSize(400, 400);
+		zoomFrame.setSize(300, 200);
 		zoomChart = ChartFactory.createTimeSeriesChart(
 				null,
 				null,
@@ -186,13 +206,22 @@ public class MainFrame {
 
 			selectedDir = dirChooser.getSelectedFile();
 			File[] filesInDir = selectedDir.listFiles((dir, name) -> name.endsWith(".sac") || name.endsWith(".SAC"));
-
-			arrivalTimeManager.clearArrivalTimes();
-
 			if (filesInDir == null || filesInDir.length == 0) {
 				System.out.println("No SAC file was found in the " + selectedDir.getAbsolutePath());
 				return;
 			}
+
+			arrivalTimeManager.clearArrivalTimes();
+			String obsFilePath = outputDir + "/" + selectedDir.getName() + ".obs";
+			File obsFile = new File(obsFilePath);
+			if (obsFile.exists()) {
+				System.out.println("Obs file was found in the " + obsFilePath);
+				arrivalTimeManager = arrivalTimeManager.readFromObs(obsFilePath);
+			} else {
+				System.out.println("No obs file was found in the " + obsFilePath);
+			}
+			arrivalTimeManager.printAllArrivalTimes();
+
 			updateFileList(fileList, filesInDir);
 			addFileSelectionListener(fileList, filesInDir, chartPanel, frame);
 		} catch (Exception ex) {

@@ -1,11 +1,20 @@
 package com.minamo;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
+import java.util.Date;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -88,6 +97,26 @@ public class ArrivalTimeManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public ArrivalTimeManager readFromObs(String fileName) {
+		File inputFile = new File(fileName);
+		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				String[] columns = line.split("\\s+");
+				String stationName = columns[0];
+				String component = columns[2];
+				String phase = columns[4];
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmm ss.SSSS");
+				LocalDateTime localDateTime = LocalDateTime.parse(columns[6] + " " + columns[7] + " " + columns[8], formatter);
+				Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+				setArrivalTime(stationName, component, phase, date);
+			}
+		} catch (IOException | DateTimeParseException e) {
+			e.printStackTrace();
+		}
+		return this;
 	}
 
 	public void clearArrivalTimes() {
