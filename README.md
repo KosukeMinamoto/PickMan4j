@@ -2,7 +2,7 @@
 
 Pickman is a simple GUI tool for picking seismic arrival times manually.
 
-***Warning: This tool is under development.***
+<p font color='red'>***Warning: This tool is under development.***</p>
 
 ## Compile and run
 
